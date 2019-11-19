@@ -321,7 +321,32 @@ int loginMenu(int id) {
     }
 }
 
-int logoutMenu() {
+void addUser(vector<User> * users) {
+    User newUser;
+    cout << "Podaj nazwe uzytkownika: ";
+    cin >> newUser.login;
+    if (!(users->empty())) {
+        vector<User>::iterator itr = users->begin();
+        while ( itr != users->end()) {
+            if (itr->login == newUser.login) {
+                cout <<"Taki uzytkownik istnieje. Wpisz inna nazwe uzytkownika: ";
+                cin >> newUser.login;
+                itr = users->begin();
+            } else
+                itr++;
+        }
+        newUser.id = users->back().id+1;
+    }
+    else
+        newUser.id = 0;
+    cout << "Podaj haslo: ";
+    cin >> newUser.password;
+    users->push_back(newUser);
+    cout << "Konto zalozone" << endl;
+    Sleep(1000);
+}
+
+int logoutMenu(vector<User> * users) {
     char choice;
 
     while(1) {
@@ -335,6 +360,7 @@ int logoutMenu() {
         case '1':
             return 1;
         case '2':
+            addUser(users);
             break;
         case '9':
             exit(0);
@@ -347,13 +373,14 @@ int logoutMenu() {
 
 int main() {
 
+    vector<User> * users = new vector<User>;
     int loginUserId = 0;
 
     while (1) {
         if (loginUserId)
             loginUserId = loginMenu(loginUserId);
         else
-            loginUserId = logoutMenu();
+            loginUserId = logoutMenu(users);
     }
     return 0;
 }
