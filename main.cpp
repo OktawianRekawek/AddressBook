@@ -3,8 +3,6 @@
 #include <fstream>
 #include <vector>
 
-
-
 using namespace std;
 
 struct Contact {
@@ -14,6 +12,11 @@ struct Contact {
            email,
            address;
     int id;
+};
+
+struct User {
+    int id;
+    string login, password;
 };
 
 void saveContact(Contact contact) {
@@ -106,8 +109,6 @@ void printAllContacts(vector<Contact> contacts) {
         }
     }
 }
-
-
 
 vector<Contact> readFromFile() {
     fstream file;
@@ -263,9 +264,7 @@ vector<Contact> editContact(vector<Contact> contacts) {
     return contacts;
 }
 
-
-
-int main() {
+int loginMenu(int id) {
     vector<Contact> contacts;
     char choice;
     contacts = readFromFile();
@@ -277,7 +276,8 @@ int main() {
         cout << "4. Wyswietl wszystkich adresatow" << endl;
         cout << "5. Usun adresata" << endl;
         cout << "6. Edytuj adresata" << endl;
-        cout << "9. Zakoncz program" << endl;
+        cout << "7. Zmien haslo" << endl;
+        cout << "9. Wyloguj sie" << endl;
         cout << "Twoj wybor: ";
         cin >> choice;
 
@@ -309,13 +309,51 @@ int main() {
             contacts = editContact(contacts);
             system("pause");
             break;
+        case '7':
+            system("pause");
+            break;
+        case '9':
+            return 0;
+        default:
+            break;
+        }
+
+    }
+}
+
+int logoutMenu() {
+    char choice;
+
+    while(1) {
+        system("cls");
+        cout << "1. Logowanie" << endl;
+        cout << "2. Rejestracja" << endl;
+        cout << "9. Zakoncz program" << endl;
+        cin >> choice;
+
+        switch (choice) {
+        case '1':
+            return 1;
+        case '2':
+            break;
         case '9':
             exit(0);
             break;
         default:
             break;
         }
+    }
+}
 
+int main() {
+
+    int loginUserId = 0;
+
+    while (1) {
+        if (loginUserId)
+            loginUserId = loginMenu(loginUserId);
+        else
+            loginUserId = logoutMenu();
     }
     return 0;
 }
