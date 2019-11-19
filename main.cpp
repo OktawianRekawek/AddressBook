@@ -264,6 +264,57 @@ vector<Contact> editContact(vector<Contact> contacts) {
     return contacts;
 }
 
+void addUser(vector<User> * users) {
+    User newUser;
+    cout << "Podaj nazwe uzytkownika: ";
+    cin >> newUser.login;
+    if (!(users->empty())) {
+        vector<User>::iterator itr = users->begin();
+        while ( itr != users->end()) {
+            if (itr->login == newUser.login) {
+                cout <<"Taki uzytkownik istnieje. Wpisz inna nazwe uzytkownika: ";
+                cin >> newUser.login;
+                itr = users->begin();
+            } else
+                itr++;
+        }
+        newUser.id = users->back().id+1;
+    } else
+        newUser.id = 1;
+    cout << "Podaj haslo: ";
+    cin >> newUser.password;
+    users->push_back(newUser);
+    cout << "Konto zalozone" << endl;
+    Sleep(1000);
+}
+
+int login(vector<User> *users) {
+    string login, password;
+    cout << "Podaj nazwe uzytkownika: ";
+    cin >> login;
+    vector<User>::iterator itr = users->begin();
+    while ( itr != users->end()) {
+        if (itr->login == login) {
+            for (int i = 0; i < 3; i++) {
+                cout <<"Podaj haslo. Pozostalo prob " << 3-i <<": ";
+                cin >> password;
+                if (password == itr->password) {
+                    cout << "Zalogowales sie." << endl;
+                    Sleep(1000);
+                    return itr->id;
+                }
+            }
+            cout << "Wpisales 3 razy bledne haslo. Poczekaj 3 sekundy przed kolejna proba";
+            Sleep(3000);
+            return 0;
+        } else
+            itr++;
+    }
+    cout << "Nie ma takiego uzytkownika" << endl;
+    Sleep(1000);
+    return 0;
+}
+
 int loginMenu(int id) {
     vector<Contact> contacts;
     char choice;
@@ -321,31 +372,6 @@ int loginMenu(int id) {
     }
 }
 
-void addUser(vector<User> * users) {
-    User newUser;
-    cout << "Podaj nazwe uzytkownika: ";
-    cin >> newUser.login;
-    if (!(users->empty())) {
-        vector<User>::iterator itr = users->begin();
-        while ( itr != users->end()) {
-            if (itr->login == newUser.login) {
-                cout <<"Taki uzytkownik istnieje. Wpisz inna nazwe uzytkownika: ";
-                cin >> newUser.login;
-                itr = users->begin();
-            } else
-                itr++;
-        }
-        newUser.id = users->back().id+1;
-    }
-    else
-        newUser.id = 0;
-    cout << "Podaj haslo: ";
-    cin >> newUser.password;
-    users->push_back(newUser);
-    cout << "Konto zalozone" << endl;
-    Sleep(1000);
-}
-
 int logoutMenu(vector<User> * users) {
     char choice;
 
@@ -358,7 +384,7 @@ int logoutMenu(vector<User> * users) {
 
         switch (choice) {
         case '1':
-            return 1;
+            return login(users);
         case '2':
             addUser(users);
             break;
