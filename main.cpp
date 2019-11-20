@@ -264,6 +264,20 @@ vector<Contact> editContact(vector<Contact> contacts) {
     return contacts;
 }
 
+void saveUser(User user) {
+    fstream file;
+
+    file.open("Uzytkownicy.txt", ios::app);
+    if (file.good()==false) {
+        cout << "Zapisanie uzytkownika do pliku sie nie powiodlo!" << endl;
+    } else {
+        file << user.id << "|";
+        file << user.login << "|";
+        file << user.password << "|" << endl;
+        file.close();
+    }
+}
+
 void addUser(vector<User> * users) {
     User newUser;
     cout << "Podaj nazwe uzytkownika: ";
@@ -284,6 +298,7 @@ void addUser(vector<User> * users) {
     cout << "Podaj haslo: ";
     cin >> newUser.password;
     users->push_back(newUser);
+    saveUser(newUser);
     cout << "Konto zalozone" << endl;
     Sleep(1000);
 }
