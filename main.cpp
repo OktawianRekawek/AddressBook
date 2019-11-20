@@ -315,6 +315,13 @@ User * login(vector<User> *users) {
     return 0;
 }
 
+void changePassword(User *user){
+    cout << "Podaj nowe haslo: ";
+    cin >> user->password;
+    cout << "Haslo zostalo zmienione" << endl;
+    Sleep(1500);
+}
+
 User * loginMenu(User *user) {
     vector<Contact> contacts;
     char choice;
@@ -361,6 +368,7 @@ User * loginMenu(User *user) {
             system("pause");
             break;
         case '7':
+            changePassword(user);
             system("pause");
             break;
         case '9':
