@@ -278,6 +278,38 @@ void saveUser(User user) {
     }
 }
 
+vector<User> * readUsersFromFile() {
+    fstream file;
+    User user;
+    vector<User> * users = new vector<User>;
+    file.open("Uzytkownicy.txt", ios::in);
+
+    if (file.good()==false) {
+        return users;
+    }
+
+    string line;
+    int i = 0;
+
+    while(getline(file, line, '|')) {
+        switch(i%3) {
+        case 0:
+            user.id = atoi(line.c_str());
+            break;
+        case 1:
+            user.login = line;
+            break;
+        case 2:
+            user.password = line;
+            users->push_back(user);
+            break;
+        }
+        i++;
+    }
+    file.close();
+    return users;
+}
+
 void addUser(vector<User> * users) {
     User newUser;
     cout << "Podaj nazwe uzytkownika: ";
@@ -422,7 +454,7 @@ User * logoutMenu(vector<User> * users) {
 
 int main() {
 
-    vector<User> * users = new vector<User>;
+    vector<User> * users = readUsersFromFile();
     User *loginUser = NULL;
     while (1) {
         if (loginUser)
