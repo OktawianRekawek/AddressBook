@@ -288,7 +288,7 @@ void addUser(vector<User> * users) {
     Sleep(1000);
 }
 
-int login(vector<User> *users) {
+User * login(vector<User> *users) {
     string login, password;
     cout << "Podaj nazwe uzytkownika: ";
     cin >> login;
@@ -301,7 +301,7 @@ int login(vector<User> *users) {
                 if (password == itr->password) {
                     cout << "Zalogowales sie." << endl;
                     Sleep(1000);
-                    return itr->id;
+                    return &(*itr);
                 }
             }
             cout << "Wpisales 3 razy bledne haslo. Poczekaj 3 sekundy przed kolejna proba";
@@ -315,7 +315,7 @@ int login(vector<User> *users) {
     return 0;
 }
 
-int loginMenu(int id) {
+User * loginMenu(User *user) {
     vector<Contact> contacts;
     char choice;
     contacts = readFromFile();
@@ -364,7 +364,7 @@ int loginMenu(int id) {
             system("pause");
             break;
         case '9':
-            return 0;
+            return NULL;
         default:
             break;
         }
@@ -372,7 +372,7 @@ int loginMenu(int id) {
     }
 }
 
-int logoutMenu(vector<User> * users) {
+User * logoutMenu(vector<User> * users) {
     char choice;
 
     while(1) {
@@ -400,13 +400,12 @@ int logoutMenu(vector<User> * users) {
 int main() {
 
     vector<User> * users = new vector<User>;
-    int loginUserId = 0;
-
+    User *loginUser = NULL;
     while (1) {
-        if (loginUserId)
-            loginUserId = loginMenu(loginUserId);
+        if (loginUser)
+            loginUser = loginMenu(loginUser);
         else
-            loginUserId = logoutMenu(users);
+            loginUser = logoutMenu(users);
     }
     return 0;
 }
