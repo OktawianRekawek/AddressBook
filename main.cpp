@@ -3,8 +3,6 @@
 #include <fstream>
 #include <vector>
 
-
-
 using namespace std;
 
 struct Contact {
@@ -13,16 +11,22 @@ struct Contact {
            phone,
            email,
            address;
+    int id, userId;
+};
+
+struct User {
     int id;
+    string login, password;
 };
 
 void saveContact(Contact contact) {
     fstream file;
 
-    file.open("listaKontaktow.txt", ios::app);
+    file.open("Adresaci.txt", ios::app);
     if (file.good()==false) {
         cout << "Zapisanie kontaktu do pliku sie nie powiodlo!" << endl;
     } else {
+        file << contact.userId << "|";
         file << contact.id << "|";
         file << contact.name << "|";
         file << contact.surname << "|";
@@ -33,7 +37,7 @@ void saveContact(Contact contact) {
     }
 }
 
-Contact addContact(int id) {
+Contact addContact(int id, int loginUserId) {
     Contact newContact;
 
     cout << "Podaj imie: ";
@@ -48,6 +52,7 @@ Contact addContact(int id) {
     cin.sync();
     getline(cin, newContact.address);
     newContact.id = id + 1;
+    newContact.userId = loginUserId;
     saveContact(newContact);
     cout << endl << "Dodano kontakt" << endl << endl;
     return newContact;
@@ -107,13 +112,11 @@ void printAllContacts(vector<Contact> contacts) {
     }
 }
 
-
-
-vector<Contact> readFromFile() {
+vector<Contact> readFromFile(int loginUserId) {
     fstream file;
     Contact contact;
     vector<Contact> contacts;
-    file.open("listaKontaktow.txt", ios::in);
+    file.open("Adresaci.txt", ios::in);
 
     if (file.good()==false) {
         return contacts;
@@ -123,28 +126,34 @@ vector<Contact> readFromFile() {
     int i = 0;
 
     while(getline(file, line, '|')) {
-        switch(i%6) {
-        case 0:
-            contact.id = atoi(line.c_str());
-            break;
-        case 1:
-            contact.name = line;
-            break;
-        case 2:
-            contact.surname = line;
-            break;
-        case 3:
-            contact.phone = line;
-            break;
-        case 4:
-            contact.email = line;
-            break;
-        case 5:
-            contact.address = line;
-            contacts.push_back(contact);
-            break;
+        if (i == 0) {
+            contact.userId = atoi(line.c_str());
+        } else if (contact.userId == loginUserId) {
+            switch(i) {
+            case 1:
+                contact.id = atoi(line.c_str());
+                break;
+            case 2:
+                contact.name = line;
+                break;
+            case 3:
+                contact.surname = line;
+                break;
+            case 4:
+                contact.phone = line;
+                break;
+            case 5:
+                contact.email = line;
+                break;
+            case 6:
+                contact.address = line;
+                contacts.push_back(contact);
+                break;
+            }
         }
         i++;
+        if (i == 7)
+            i = 0;
     }
     file.close();
     return contacts;
@@ -152,7 +161,7 @@ vector<Contact> readFromFile() {
 
 void rewriteAddressBook(vector<Contact> contacts) {
     fstream file;
-    file.open("listaKontaktow.txt", ios::out|ios::trunc);
+    file.open("Adresaci.txt", ios::out|ios::trunc);
 
     if (file.good()==false) {
         return;
@@ -263,12 +272,130 @@ vector<Contact> editContact(vector<Contact> contacts) {
     return contacts;
 }
 
+void saveUser(User user) {
+    fstream file;
 
+    file.open("Uzytkownicy.txt", ios::app);
+    if (file.good()==false) {
+        cout << "Zapisanie uzytkownika do pliku sie nie powiodlo!" << endl;
+    } else {
+        file << user.id << "|";
+        file << user.login << "|";
+        file << user.password << "|" << endl;
+        file.close();
+    }
+}
 
-int main() {
+vector<User> * readUsersFromFile() {
+    fstream file;
+    User user;
+    vector<User> * users = new vector<User>;
+    file.open("Uzytkownicy.txt", ios::in);
+
+    if (file.good()==false) {
+        return users;
+    }
+
+    string line;
+    int i = 0;
+
+    while(getline(file, line, '|')) {
+        switch(i%3) {
+        case 0:
+            user.id = atoi(line.c_str());
+            break;
+        case 1:
+            user.login = line;
+            break;
+        case 2:
+            user.password = line;
+            users->push_back(user);
+            break;
+        }
+        i++;
+    }
+    file.close();
+    return users;
+}
+
+void addUser(vector<User> * users) {
+    User newUser;
+    cout << "Podaj nazwe uzytkownika: ";
+    cin >> newUser.login;
+    if (!(users->empty())) {
+        vector<User>::iterator itr = users->begin();
+        while ( itr != users->end()) {
+            if (itr->login == newUser.login) {
+                cout <<"Taki uzytkownik istnieje. Wpisz inna nazwe uzytkownika: ";
+                cin >> newUser.login;
+                itr = users->begin();
+            } else
+                itr++;
+        }
+        newUser.id = users->back().id+1;
+    } else
+        newUser.id = 1;
+    cout << "Podaj haslo: ";
+    cin >> newUser.password;
+    users->push_back(newUser);
+    saveUser(newUser);
+    cout << "Konto zalozone" << endl;
+    Sleep(1000);
+}
+
+User * login(vector<User> *users) {
+    string login, password;
+    cout << "Podaj nazwe uzytkownika: ";
+    cin >> login;
+    vector<User>::iterator itr = users->begin();
+    while ( itr != users->end()) {
+        if (itr->login == login) {
+            for (int i = 0; i < 3; i++) {
+                cout <<"Podaj haslo. Pozostalo prob " << 3-i <<": ";
+                cin >> password;
+                if (password == itr->password) {
+                    cout << "Zalogowales sie." << endl;
+                    Sleep(1000);
+                    return &(*itr);
+                }
+            }
+            cout << "Wpisales 3 razy bledne haslo. Poczekaj 3 sekundy przed kolejna proba";
+            Sleep(3000);
+            return 0;
+        } else
+            itr++;
+    }
+    cout << "Nie ma takiego uzytkownika" << endl;
+    Sleep(1000);
+    return 0;
+}
+
+void changePassword(User *user){
+    cout << "Podaj nowe haslo: ";
+    cin >> user->password;
+    cout << "Haslo zostalo zmienione" << endl;
+    Sleep(1500);
+}
+
+void rewriteUsersBook(vector<User> * users) {
+    fstream file;
+    User user;
+    file.open("Uzytkownicy.txt", ios::out|ios::trunc);
+
+    if (file.good()==false) {
+        return;
+    }
+    file.close();
+    for (vector<User>::iterator itr = users->begin(); itr != users->end(); itr++){
+        user = *itr;
+        saveUser(user);
+    }
+}
+
+User * loginMenu(vector<User> * users, User *user) {
     vector<Contact> contacts;
     char choice;
-    contacts = readFromFile();
+    contacts = readFromFile(user->id);
     while(1) {
         system("cls");
         cout << "1. Dodaj adresata" << endl;
@@ -277,16 +404,17 @@ int main() {
         cout << "4. Wyswietl wszystkich adresatow" << endl;
         cout << "5. Usun adresata" << endl;
         cout << "6. Edytuj adresata" << endl;
-        cout << "9. Zakoncz program" << endl;
+        cout << "7. Zmien haslo" << endl;
+        cout << "9. Wyloguj sie" << endl;
         cout << "Twoj wybor: ";
         cin >> choice;
 
         switch (choice) {
         case '1':
             if (contacts.empty())
-                contacts.push_back(addContact(0));
+                contacts.push_back(addContact(0, user->id));
             else
-                contacts.push_back(addContact(contacts.back().id));
+                contacts.push_back(addContact(contacts.back().id, user->id));
             system("pause");
             break;
         case '2':
@@ -309,13 +437,54 @@ int main() {
             contacts = editContact(contacts);
             system("pause");
             break;
+        case '7':
+            changePassword(user);
+            rewriteUsersBook(users);
+            system("pause");
+            break;
+        case '9':
+            return NULL;
+        default:
+            break;
+        }
+
+    }
+}
+
+User * logoutMenu(vector<User> * users) {
+    char choice;
+
+    while(1) {
+        system("cls");
+        cout << "1. Logowanie" << endl;
+        cout << "2. Rejestracja" << endl;
+        cout << "9. Zakoncz program" << endl;
+        cin >> choice;
+
+        switch (choice) {
+        case '1':
+            return login(users);
+        case '2':
+            addUser(users);
+            break;
         case '9':
             exit(0);
             break;
         default:
             break;
         }
+    }
+}
 
+int main() {
+
+    vector<User> * users = readUsersFromFile();
+    User *loginUser = NULL;
+    while (1) {
+        if (loginUser)
+            loginUser = loginMenu(users, loginUser);
+        else
+            loginUser = logoutMenu(users);
     }
     return 0;
 }
