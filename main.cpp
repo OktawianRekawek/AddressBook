@@ -21,8 +21,8 @@ struct User {
 
 void saveContact(Contact contact) {
     fstream file;
-
-    file.open("Adresaci.txt", ios::app);
+    string fileName = "Adresaci\\" + to_string(contact.userId) + ".txt";
+    file.open(fileName, ios::app);
     if (file.good()==false) {
         cout << "Zapisanie kontaktu do pliku sie nie powiodlo!" << endl;
     } else {
@@ -116,7 +116,8 @@ vector<Contact> readFromFile(int loginUserId) {
     fstream file;
     Contact contact;
     vector<Contact> contacts;
-    file.open("Adresaci.txt", ios::in);
+    string fileName = "Adresaci\\" + to_string(loginUserId) + ".txt";
+    file.open(fileName, ios::in);
 
     if (file.good()==false) {
         return contacts;
@@ -159,9 +160,9 @@ vector<Contact> readFromFile(int loginUserId) {
     return contacts;
 }
 
-void rewriteAddressBook(vector<Contact> contacts) {
+void rewriteAddressBook(vector<Contact> contacts, string fileName) {
     fstream file;
-    file.open("Adresaci.txt", ios::out|ios::trunc);
+    file.open(fileName, ios::out|ios::trunc);
 
     if (file.good()==false) {
         return;
@@ -183,20 +184,28 @@ bool deleteAccept() {
 }
 
 vector<Contact> deleteContact (vector<Contact> contacts) {
-    int id;
-    cout << "Wpisz id kontaktu do usuniecia: ";
-    cin >> id;
-    for (vector<Contact>::iterator itr = contacts.begin(); itr != contacts.end(); itr++) {
-        if (itr->id == id) {
-            if (deleteAccept()) {
-                itr = contacts.erase(itr) - 1;
-                rewriteAddressBook(contacts);
-                cout << "Usunieto kontakt!" << endl;
+    if (contacts.empty()){
+        cout << endl << "Lista kontaktow jest pusta" << endl;
+    } else {
+        int id;
+        string fileName = "Adresaci\\" + to_string(contacts[0].userId) + ".txt";
+        cout << "Wpisz id kontaktu do usuniecia: ";
+        cin >> id;
+        for (vector<Contact>::iterator itr = contacts.begin(); itr != contacts.end(); itr++) {
+            if (itr->id == id) {
+                if (deleteAccept()) {
+                    itr = contacts.erase(itr) - 1;
+                    if (contacts.empty())
+                        remove(fileName.c_str());
+                    else
+                        rewriteAddressBook(contacts, fileName);
+                    cout << "Usunieto kontakt!" << endl;
+                }
+                return contacts;
             }
-            return contacts;
         }
+        cout << "Brak kontaktu o takim id!" << endl;
     }
-    cout << "Brak kontaktu o takim id!" << endl;
     return contacts;
 }
 
@@ -252,6 +261,7 @@ Contact editContactField(Contact contact, char whichField) {
 vector<Contact> editContact(vector<Contact> contacts) {
     int id;
     char whichField;
+    string fileName = "Adresaci\\" + to_string(contacts[0].userId) + ".txt";
     cout << "Wpisz id kontaktu do edycji: ";
     cin >> id;
     for (vector<Contact>::iterator itr = contacts.begin(); itr != contacts.end(); itr++) {
@@ -262,7 +272,7 @@ vector<Contact> editContact(vector<Contact> contacts) {
                 return contacts;
             else
                 *itr = editContactField(*itr, whichField);
-            rewriteAddressBook(contacts);
+            rewriteAddressBook(contacts, fileName);
             cout << "Zakonczono edycje!" << endl;
             return contacts;
         }
