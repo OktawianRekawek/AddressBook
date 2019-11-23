@@ -159,16 +159,32 @@ vector<Contact> readFromFile(int loginUserId) {
     return contacts;
 }
 
-void rewriteAddressBook(vector<Contact> contacts) {
+void rewriteLine(string line){
     fstream file;
-    file.open("Adresaci.txt", ios::out|ios::trunc);
+    file.open("Adresaci.txt", ios::app);
+    file << line << endl;
+    file.close();
+}
 
-    if (file.good()==false) {
-        return;
+void rewriteAddressBook(vector<Contact> contacts, int loginUserId) {
+    fstream file;
+
+    rename("Adresaci.txt", "Adresaci_stary.txt");
+    file.open("Adresaci_stary.txt", ios::in);
+
+    string line;
+    int i = 0;
+    while(getline(file, line)) {
+        if (atoi(line.c_str()) == loginUserId) {
+            if (!contacts.empty()) {
+                saveContact(contacts[i]);
+                i++;
+            }
+        } else
+            rewriteLine(line);
     }
     file.close();
-    for (vector<Contact>::iterator itr = contacts.begin(); itr != contacts.end(); itr++)
-        saveContact(*itr);
+    remove("Adresaci_stary.txt");
 }
 
 bool deleteAccept() {
@@ -184,13 +200,14 @@ bool deleteAccept() {
 
 vector<Contact> deleteContact (vector<Contact> contacts) {
     int id;
+    int loginUserId = contacts[0].userId;
     cout << "Wpisz id kontaktu do usuniecia: ";
     cin >> id;
     for (vector<Contact>::iterator itr = contacts.begin(); itr != contacts.end(); itr++) {
         if (itr->id == id) {
             if (deleteAccept()) {
                 itr = contacts.erase(itr) - 1;
-                rewriteAddressBook(contacts);
+                rewriteAddressBook(contacts, loginUserId);
                 cout << "Usunieto kontakt!" << endl;
             }
             return contacts;
@@ -262,7 +279,7 @@ vector<Contact> editContact(vector<Contact> contacts) {
                 return contacts;
             else
                 *itr = editContactField(*itr, whichField);
-            rewriteAddressBook(contacts);
+            rewriteAddressBook(contacts, contacts[0].userId);
             cout << "Zakonczono edycje!" << endl;
             return contacts;
         }
@@ -370,7 +387,7 @@ User * login(vector<User> *users) {
     return 0;
 }
 
-void changePassword(User *user){
+void changePassword(User *user) {
     cout << "Podaj nowe haslo: ";
     cin >> user->password;
     cout << "Haslo zostalo zmienione" << endl;
@@ -386,7 +403,7 @@ void rewriteUsersBook(vector<User> * users) {
         return;
     }
     file.close();
-    for (vector<User>::iterator itr = users->begin(); itr != users->end(); itr++){
+    for (vector<User>::iterator itr = users->begin(); itr != users->end(); itr++) {
         user = *itr;
         saveUser(user);
     }
