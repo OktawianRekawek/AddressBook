@@ -369,7 +369,22 @@ void changePassword(User *user){
     Sleep(1500);
 }
 
-User * loginMenu(User *user) {
+void rewriteUsersBook(vector<User> * users) {
+    fstream file;
+    User user;
+    file.open("Uzytkownicy.txt", ios::out|ios::trunc);
+
+    if (file.good()==false) {
+        return;
+    }
+    file.close();
+    for (vector<User>::iterator itr = users->begin(); itr != users->end(); itr++){
+        user = *itr;
+        saveUser(user);
+    }
+}
+
+User * loginMenu(vector<User> * users, User *user) {
     vector<Contact> contacts;
     char choice;
     contacts = readFromFile();
@@ -416,6 +431,7 @@ User * loginMenu(User *user) {
             break;
         case '7':
             changePassword(user);
+            rewriteUsersBook(users);
             system("pause");
             break;
         case '9':
@@ -458,7 +474,7 @@ int main() {
     User *loginUser = NULL;
     while (1) {
         if (loginUser)
-            loginUser = loginMenu(loginUser);
+            loginUser = loginMenu(users, loginUser);
         else
             loginUser = logoutMenu(users);
     }
