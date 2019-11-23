@@ -22,7 +22,7 @@ struct User {
 void saveContact(Contact contact) {
     fstream file;
 
-    file.open("listaKontaktow.txt", ios::app);
+    file.open("Adresaci.txt", ios::app);
     if (file.good()==false) {
         cout << "Zapisanie kontaktu do pliku sie nie powiodlo!" << endl;
     } else {
@@ -114,7 +114,7 @@ vector<Contact> readFromFile() {
     fstream file;
     Contact contact;
     vector<Contact> contacts;
-    file.open("listaKontaktow.txt", ios::in);
+    file.open("Adresaci.txt", ios::in);
 
     if (file.good()==false) {
         return contacts;
@@ -153,7 +153,7 @@ vector<Contact> readFromFile() {
 
 void rewriteAddressBook(vector<Contact> contacts) {
     fstream file;
-    file.open("listaKontaktow.txt", ios::out|ios::trunc);
+    file.open("Adresaci.txt", ios::out|ios::trunc);
 
     if (file.good()==false) {
         return;
