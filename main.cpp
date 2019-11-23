@@ -11,7 +11,7 @@ struct Contact {
            phone,
            email,
            address;
-    int id;
+    int id, userId;
 };
 
 struct User {
@@ -26,6 +26,7 @@ void saveContact(Contact contact) {
     if (file.good()==false) {
         cout << "Zapisanie kontaktu do pliku sie nie powiodlo!" << endl;
     } else {
+        file << contact.userId << "|";
         file << contact.id << "|";
         file << contact.name << "|";
         file << contact.surname << "|";
@@ -36,7 +37,7 @@ void saveContact(Contact contact) {
     }
 }
 
-Contact addContact(int id) {
+Contact addContact(int id, int loginUserId) {
     Contact newContact;
 
     cout << "Podaj imie: ";
@@ -51,6 +52,7 @@ Contact addContact(int id) {
     cin.sync();
     getline(cin, newContact.address);
     newContact.id = id + 1;
+    newContact.userId = loginUserId;
     saveContact(newContact);
     cout << endl << "Dodano kontakt" << endl << endl;
     return newContact;
@@ -110,7 +112,7 @@ void printAllContacts(vector<Contact> contacts) {
     }
 }
 
-vector<Contact> readFromFile() {
+vector<Contact> readFromFile(int loginUserId) {
     fstream file;
     Contact contact;
     vector<Contact> contacts;
@@ -124,28 +126,34 @@ vector<Contact> readFromFile() {
     int i = 0;
 
     while(getline(file, line, '|')) {
-        switch(i%6) {
-        case 0:
-            contact.id = atoi(line.c_str());
-            break;
-        case 1:
-            contact.name = line;
-            break;
-        case 2:
-            contact.surname = line;
-            break;
-        case 3:
-            contact.phone = line;
-            break;
-        case 4:
-            contact.email = line;
-            break;
-        case 5:
-            contact.address = line;
-            contacts.push_back(contact);
-            break;
+        if (i == 0) {
+            contact.userId = atoi(line.c_str());
+        } else if (contact.userId == loginUserId) {
+            switch(i) {
+            case 1:
+                contact.id = atoi(line.c_str());
+                break;
+            case 2:
+                contact.name = line;
+                break;
+            case 3:
+                contact.surname = line;
+                break;
+            case 4:
+                contact.phone = line;
+                break;
+            case 5:
+                contact.email = line;
+                break;
+            case 6:
+                contact.address = line;
+                contacts.push_back(contact);
+                break;
+            }
         }
         i++;
+        if (i == 7)
+            i = 0;
     }
     file.close();
     return contacts;
@@ -387,7 +395,7 @@ void rewriteUsersBook(vector<User> * users) {
 User * loginMenu(vector<User> * users, User *user) {
     vector<Contact> contacts;
     char choice;
-    contacts = readFromFile();
+    contacts = readFromFile(user->id);
     while(1) {
         system("cls");
         cout << "1. Dodaj adresata" << endl;
@@ -404,9 +412,9 @@ User * loginMenu(vector<User> * users, User *user) {
         switch (choice) {
         case '1':
             if (contacts.empty())
-                contacts.push_back(addContact(0));
+                contacts.push_back(addContact(0, user->id));
             else
-                contacts.push_back(addContact(contacts.back().id));
+                contacts.push_back(addContact(contacts.back().id, user->id));
             system("pause");
             break;
         case '2':
