@@ -58,6 +58,45 @@ Contact addContact(int *id, int loginUserId) {
     return newContact;
 }
 
+Contact decodeContact(string line){
+    Contact contact;
+    string contactData = "";
+    int contactDataNumber = 0;
+
+    for (int i = 0; i < line.length(); i++) {
+        if (line[i] != '|') {
+            contactData += line[i];
+        } else {
+            switch(contactDataNumber) {
+            case 0:
+                contact.id = atoi(contactData.c_str());
+                break;
+            case 1:
+                contact.userId = atoi(contactData.c_str());
+                break;
+            case 2:
+                contact.name = contactData;
+                break;
+            case 3:
+                contact.surname = contactData;
+                break;
+            case 4:
+                contact.phone = contactData;
+                break;
+            case 5:
+                contact.email = contactData;
+                break;
+            case 6:
+                contact.address = contactData;
+                break;
+            }
+            contactData = "";
+            contactDataNumber++;
+        }
+    }
+    return contact;
+}
+
 void printContact(Contact contact) {
 
     cout << "ID kontaktu: " << contact.id << endl;
@@ -112,7 +151,7 @@ void printAllContacts(vector<Contact> contacts) {
     }
 }
 
-vector<Contact> readFromFile(int loginUserId, int *contactsNumber) {
+vector<Contact> readFromFile(int loginUserId, int *lastContactId) {
     fstream file;
     Contact contact;
     vector<Contact> contacts;
@@ -123,42 +162,13 @@ vector<Contact> readFromFile(int loginUserId, int *contactsNumber) {
     }
 
     string line;
-    int i = 0, j = 0;
-    while(getline(file, line, '|')) {
-        switch(i) {
-        case 0:
-            contact.id = atoi(line.c_str());
-            break;
-        case 1:
-            contact.userId = atoi(line.c_str());
-            break;
-        case 2:
-            contact.name = line;
-            break;
-        case 3:
-            contact.surname = line;
-            break;
-        case 4:
-            contact.phone = line;
-            break;
-        case 5:
-            contact.email = line;
-            break;
-        case 6:
-            contact.address = line;
-            if (loginUserId == contact.userId)
-                contacts.push_back(contact);
-            break;
-        }
-        i++;
-        if (i == 7) {
-            j++;
-            i = 0;
-        }
-
+    while(getline(file, line)) {
+        contact = decodeContact(line);
+        *lastContactId = contact.id;
+        if (loginUserId == contact.userId)
+            contacts.push_back(contact);
     }
     file.close();
-    (*contactsNumber) = j;
     return contacts;
 }
 
@@ -174,14 +184,15 @@ void rewriteAddressBook(vector<Contact> contacts, int loginUserId) {
 
     rename("Adresaci.txt", "Adresaci_stary.txt");
     file.open("Adresaci_stary.txt", ios::in);
-
+    Contact contact;
     string line;
-    int i = 0, j = 0;
+    vector<Contact>::iterator itr = contacts.begin();
     while(getline(file, line)) {
-        if (atoi(line.c_str()) == loginUserId) {
+        contact = decodeContact(line);
+        if (contact.userId == loginUserId) {
             if (!contacts.empty()) {
-                saveContact(contacts[i]);
-                i++;
+                saveContact(*itr);
+                itr++;
             }
         } else
             rewriteLine(line);
