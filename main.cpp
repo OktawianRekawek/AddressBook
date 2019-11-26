@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <fstream>
 #include <vector>
+#include <direct.h>
 
 using namespace std;
 
@@ -22,6 +23,7 @@ struct User {
 void saveContact(Contact contact) {
     fstream file;
     string fileName = "Adresaci\\" + to_string(contact.userId) + ".txt";
+    _mkdir("Adresaci");
     file.open(fileName, ios::app);
     if (file.good()==false) {
         cout << "Zapisanie kontaktu do pliku sie nie powiodlo!" << endl;
