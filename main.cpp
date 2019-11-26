@@ -190,7 +190,7 @@ void rewriteAddressBook(vector<Contact> contacts, int loginUserId) {
     while(getline(file, line)) {
         contact = decodeContact(line);
         if (contact.userId == loginUserId) {
-            if (!contacts.empty()) {
+            if (!contacts.empty() && itr != contacts.end()) {
                 saveContact(*itr);
                 itr++;
             }
