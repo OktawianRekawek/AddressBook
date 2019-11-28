@@ -179,9 +179,9 @@ void rewriteLine(string line){
     file.close();
 }
 
-void rewriteAddressBook(vector<Contact> contacts, int loginUserId) {
+int rewriteAddressBook(vector<Contact> contacts, int loginUserId) {
     fstream file;
-
+    int lastContactId;
     rename("Adresaci.txt", "Adresaci_stary.txt");
     file.open("Adresaci_stary.txt", ios::in);
     Contact contact;
@@ -189,16 +189,20 @@ void rewriteAddressBook(vector<Contact> contacts, int loginUserId) {
     vector<Contact>::iterator itr = contacts.begin();
     while(getline(file, line)) {
         contact = decodeContact(line);
+        lastContactId = contact.id;
         if (contact.userId == loginUserId) {
             if (!contacts.empty() && itr != contacts.end()) {
                 saveContact(*itr);
                 itr++;
             }
+            lastContactId = (itr-1)->id;
         } else
             rewriteLine(line);
+
     }
     file.close();
     remove("Adresaci_stary.txt");
+    return lastContactId;
 }
 
 bool deleteAccept() {
@@ -212,7 +216,7 @@ bool deleteAccept() {
 
 }
 
-vector<Contact> deleteContact (vector<Contact> contacts) {
+vector<Contact> deleteContact (vector<Contact> contacts, int * lastContactId) {
     int id;
     int loginUserId = contacts[0].userId;
     cout << "Wpisz id kontaktu do usuniecia: ";
@@ -221,7 +225,7 @@ vector<Contact> deleteContact (vector<Contact> contacts) {
         if (itr->id == id) {
             if (deleteAccept()) {
                 itr = contacts.erase(itr) - 1;
-                rewriteAddressBook(contacts, loginUserId);
+                *lastContactId = rewriteAddressBook(contacts, loginUserId);
                 cout << "Usunieto kontakt!" << endl;
             }
             return contacts;
@@ -459,7 +463,7 @@ User * loginMenu(vector<User> * users, User *user) {
             system("pause");
             break;
         case '5':
-            contacts = deleteContact(contacts);
+            contacts = deleteContact(contacts, &lastContactId);
             system("pause");
             break;
         case '6':
