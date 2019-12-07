@@ -2,6 +2,7 @@
 #include <windows.h>
 #include <fstream>
 #include <vector>
+#include "User.h"
 
 using namespace std;
 
@@ -12,11 +13,6 @@ struct Contact {
            email,
            address;
     int id, userId;
-};
-
-struct User {
-    int id;
-    string login, password;
 };
 
 void saveContact(Contact contact) {
@@ -314,9 +310,9 @@ void saveUser(User user) {
     if (file.good()==false) {
         cout << "Zapisanie uzytkownika do pliku sie nie powiodlo!" << endl;
     } else {
-        file << user.id << "|";
-        file << user.login << "|";
-        file << user.password << "|" << endl;
+        file << user.getId() << "|";
+        file << user.getLogin() << "|";
+        file << user.getPassword() << "|" << endl;
         file.close();
     }
 }
@@ -337,13 +333,13 @@ vector<User> * readUsersFromFile() {
     while(getline(file, line, '|')) {
         switch(i%3) {
         case 0:
-            user.id = atoi(line.c_str());
+            user.setId(atoi(line.c_str()));
             break;
         case 1:
-            user.login = line;
+            user.setLogin(line);
             break;
         case 2:
-            user.password = line;
+            user.setPassword(line);
             users->push_back(user);
             break;
         }
@@ -354,24 +350,26 @@ vector<User> * readUsersFromFile() {
 }
 
 void addUser(vector<User> * users) {
-    User newUser;
+    string login, password;
+    int id = 0;
     cout << "Podaj nazwe uzytkownika: ";
-    cin >> newUser.login;
+    cin >> login;
     if (!(users->empty())) {
         vector<User>::iterator itr = users->begin();
         while ( itr != users->end()) {
-            if (itr->login == newUser.login) {
+            if (itr->getLogin() == login) {
                 cout <<"Taki uzytkownik istnieje. Wpisz inna nazwe uzytkownika: ";
-                cin >> newUser.login;
+                cin >> login;
                 itr = users->begin();
             } else
                 itr++;
         }
-        newUser.id = users->back().id+1;
+        id = users->back().getId()+1;
     } else
-        newUser.id = 1;
+        id = 1;
     cout << "Podaj haslo: ";
-    cin >> newUser.password;
+    cin >> password;
+    User newUser(id, login, password);
     users->push_back(newUser);
     saveUser(newUser);
     cout << "Konto zalozone" << endl;
@@ -384,11 +382,11 @@ User * login(vector<User> *users) {
     cin >> login;
     vector<User>::iterator itr = users->begin();
     while ( itr != users->end()) {
-        if (itr->login == login) {
+        if (itr->getLogin() == login) {
             for (int i = 0; i < 3; i++) {
                 cout <<"Podaj haslo. Pozostalo prob " << 3-i <<": ";
                 cin >> password;
-                if (password == itr->password) {
+                if (password == itr->getPassword()) {
                     cout << "Zalogowales sie." << endl;
                     Sleep(1000);
                     return &(*itr);
@@ -406,8 +404,10 @@ User * login(vector<User> *users) {
 }
 
 void changePassword(User *user) {
+    string password;
     cout << "Podaj nowe haslo: ";
-    cin >> user->password;
+    cin >> password;
+    user->setPassword(password);
     cout << "Haslo zostalo zmienione" << endl;
     Sleep(1500);
 }
@@ -431,7 +431,7 @@ User * loginMenu(vector<User> * users, User *user) {
     vector<Contact> contacts;
     char choice;
     int lastContactId = 0;
-    contacts = readFromFile(user->id, &lastContactId);
+    contacts = readFromFile(user->getId(), &lastContactId);
     while(1) {
         system("cls");
         cout << "1. Dodaj adresata" << endl;
@@ -447,7 +447,7 @@ User * loginMenu(vector<User> * users, User *user) {
 
         switch (choice) {
         case '1':
-            contacts.push_back(addContact(&lastContactId, user->id));
+            contacts.push_back(addContact(&lastContactId, user->getId()));
             system("pause");
             break;
         case '2':
